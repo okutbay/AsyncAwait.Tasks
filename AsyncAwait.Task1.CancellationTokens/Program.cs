@@ -8,6 +8,8 @@
 */
 
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace AsyncAwait.Task1.CancellationTokens;
 
@@ -17,26 +19,40 @@ internal class Program
     /// The Main method should not be changed at all.
     /// </summary>
     /// <param name="args"></param>
+    /// 
+    private static CancellationTokenSource tokenSource;
+
     private static void Main(string[] args)
     {
         Console.WriteLine("Mentoring program L2. Async/await.V1. Task 1");
         Console.WriteLine("Calculating the sum of integers from 0 to N.");
-        Console.WriteLine("Use 'q' key to exit...");
-        Console.WriteLine();
+        
+        ShowEnterN(1);
 
-        Console.WriteLine("Enter N: ");
-
+        tokenSource = new CancellationTokenSource();
         var input = Console.ReadLine();
+
         while (input.Trim().ToUpper() != "Q")
         {
             if (int.TryParse(input, out var n))
             {
-                CalculateSum(n);
+                Task.Run(() =>
+                {
+                    CalculateSum(n);
+                });
             }
             else
             {
-                Console.WriteLine($"Invalid integer: '{input}'. Please try again.");
-                Console.WriteLine("Enter N: ");
+                if (input.Trim().ToUpper() == "N")
+                {
+                    tokenSource.Cancel();
+                    tokenSource.Dispose();
+                    tokenSource = new CancellationTokenSource();
+                }
+                else
+                {
+                    Console.WriteLine($"Invalid integer: '{input}'. Please try again.");
+                }
             }
 
             input = Console.ReadLine();
@@ -46,16 +62,34 @@ internal class Program
         Console.ReadLine();
     }
 
-    private static void CalculateSum(int n)
+    private static async void CalculateSum(int n)
     {
-        // todo: make calculation asynchronous
-        var sum = Calculator.Calculate(n);
-        Console.WriteLine($"Sum for {n} = {sum}.");
-        Console.WriteLine();
-        Console.WriteLine("Enter N: ");
-        // todo: add code to process cancellation and uncomment this line    
-        // Console.WriteLine($"Sum for {n} cancelled...");
+        var token = tokenSource.Token;
 
-        Console.WriteLine($"The task for {n} started... Enter N to cancel the request:");
+        Console.WriteLine($"The task for {n} started... Enter 'N' to cancel the request: ");
+
+        try
+        {
+            // todo: make calculation asynchronous
+            var sum = await Calculator.CalculateAsync(n, token);
+
+            Console.WriteLine($"Sum for {n} = {sum}.");
+        }
+        catch (OperationCanceledException ex)
+        {
+            // todo: add code to process cancellation and uncomment this line    
+            Console.WriteLine($"Sum for {n} cancelled... {ex.Message}");
+        }
+        finally
+        {
+            ShowEnterN(2);
+        }
+    }
+
+    private static void ShowEnterN(int step)
+    {
+        Console.WriteLine("Use 'Q' key to exit...");
+        Console.WriteLine();
+        Console.Write($"({step}) Enter N: ");
     }
 }
