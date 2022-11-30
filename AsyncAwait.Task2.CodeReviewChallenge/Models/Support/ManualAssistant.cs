@@ -23,12 +23,12 @@ public class ManualAssistant : IAssistant
             Console.WriteLine(t.Status); // this is for debugging purposes
             Thread.Sleep(5000); // this is just to be sure that the request is registered
             return await _supportService.GetSupportInfoAsync(requestInfo)
-                .ConfigureAwait(false);
+                .ConfigureAwait(false); // [OKB] ??
         }
         catch (HttpRequestException ex)
         {
             return await Task.Run(async () =>
-                await Task.FromResult($"Failed to register assistance request. Please try later. {ex.Message}"));
+                await Task.FromResult($"Failed to register assistance request. Please try later. {ex.Message}")); // [OKB] ??
         }
     }
 }
