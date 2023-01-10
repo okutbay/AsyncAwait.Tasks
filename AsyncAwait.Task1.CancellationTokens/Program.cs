@@ -36,10 +36,10 @@ internal class Program
         {
             if (int.TryParse(input, out var n))
             {
-                Task.Run(() =>
+                Task.Run(async () =>
                 {
-                    CalculateSum(n);
-                }).Wait();
+                    await CalculateSum(n);
+                });
             }
             else
             {
@@ -62,7 +62,7 @@ internal class Program
         Console.ReadLine();
     }
 
-    private static void CalculateSum(int n)
+    private static async Task CalculateSum(int n)
     {
         var token = tokenSource.Token;
 
@@ -71,7 +71,7 @@ internal class Program
         try
         {
             // todo: make calculation asynchronous
-            var sum = Calculator.CalculateAsync(n, token);
+            var sum = await Calculator.CalculateAsync(n, token);
 
             Console.WriteLine($"Sum for {n} = {sum}.");
         }
