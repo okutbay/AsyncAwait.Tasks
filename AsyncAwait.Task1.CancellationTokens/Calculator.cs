@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace AsyncAwait.Task1.CancellationTokens;
@@ -24,17 +25,20 @@ internal static class Calculator
     {
         long sum = 0;
 
-        Task.Run(() =>
+        Parallel.For(0, n, (i, pls) =>
         {
-            for (var i = 0; i < n; i++)
-            {
-                // i + 1 is to allow 2147483647 (Max(Int32)) 
-                sum = sum + (i + 1);
-                Thread.Sleep(10);
-                //token.ThrowIfCancellationRequested();
-            }
-        }, token).Wait(token);
+            // i + 1 is to allow 2147483647 (Max(Int32)) 
+            sum = sum + (i + 1);
+            Thread.Sleep(10);
 
+            if (token.IsCancellationRequested)
+            {
+                sum = -1;
+                pls.Break();
+            }
+        });
+
+        await Task.CompletedTask;
         return sum;
     }
 }
