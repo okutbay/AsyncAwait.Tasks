@@ -25,15 +25,15 @@ public class StatisticMiddleware
 
         var staticRegTask = Task.Run(
             () => _statisticService.RegisterVisitAsync(path)
-                .ConfigureAwait(false)
-                .GetAwaiter().OnCompleted(UpdateHeaders));
+                .ConfigureAwait(false) // [OKB] ??
+                .GetAwaiter().OnCompleted(UpdateHeaders)); // [OKB] ??
         Console.WriteLine(staticRegTask.Status); // just for debugging purposes
 
         void UpdateHeaders()
         {
             context.Response.Headers.Add(
                 CustomHttpHeaders.TotalPageVisits,
-                _statisticService.GetVisitsCountAsync(path).GetAwaiter().GetResult().ToString());
+                _statisticService.GetVisitsCountAsync(path).GetAwaiter().GetResult().ToString()); // [OKB] ??
         }
 
         Thread.Sleep(3000); // without this the statistic counter does not work
